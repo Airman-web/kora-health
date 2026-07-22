@@ -141,3 +141,15 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# AI coding assistant workspace files
+.claude/
+.agent/
+.agents/
+.cursor/
+.cursorrules
+.continue/
+.windsurf/
+CLAUDE.md
+AGENTS.md
+skills-lock.json
