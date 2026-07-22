@@ -4,10 +4,117 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// database definitions
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         String   // "PATIENT" or "THERAPIST"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  patient   PatientProfile?
+  therapist TherapistProfile?
+}
+
+model PatientProfile {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  fullName       String
+  dateOfBirth    DateTime
+  phoneNumber    String
+  medicalHistory String?
+  currentPain    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  treatmentPlans  TreatmentPlan[]  @relation("PatientTreatmentPlans")
+  workoutSessions WorkoutSession[] @relation("PatientWorkoutSessions")
+}
+
+model TherapistProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  fullName      String
+  licenseNumber String   @unique
+  specialty     String?
+  yearsOfExperience Int?
+  bio           String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  treatmentPlans TreatmentPlan[] @relation("TherapistTreatmentPlans")
+}
+
+model TreatmentPlan {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  patientId   String
+  therapistId String
+  status      String    @default("ACTIVE") // "ACTIVE", "COMPLETED", "PAUSED"
+  startDate   DateTime  @default(now())
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  patient   PatientProfile      @relation("PatientTreatmentPlans", fields: [patientId], references: [id], onDelete: Cascade)
+  therapist TherapistProfile    @relation("TherapistTreatmentPlans", fields: [therapistId], references: [id], onDelete: Cascade)
+  exercises PrescribedExercise[]
+}
+
+model PrescribedExercise {
+  id              String    @id @default(cuid())
+  planId          String
+  name            String
+  description     String?
+  targetSets      Int
+  targetReps      Int
+  restSeconds     Int
+  frequencyPerWeek Int      @default(3)
+  videoUrl        String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  plan     TreatmentPlan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  sessions WorkoutSession[]
+}
+
+model WorkoutSession {
+  id                String    @id @default(cuid())
+  patientId         String
+  exerciseId        String
+  startedAt         DateTime  @default(now())
+  completedAt       DateTime?
+  setsCompleted     Int?
+  repsCompleted     Int?
+  durationSeconds   Int?
+  patientNotes      String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  patient   PatientProfile     @relation("PatientWorkoutSessions", fields: [patientId], references: [id], onDelete: Cascade)
+  exercise  PrescribedExercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  painLogs  PainLog[]
+}
+
+model PainLog {
+  id             String   @id @default(cuid())
+  sessionId      String
+  score          Int      // 0 to 10
+  timing         String   // "PRE" or "POST"
+  bodyLocation   String?  // optional, "left knee", "lower back", etc.
+  createdAt      DateTime @default(now())
+
+  session WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
