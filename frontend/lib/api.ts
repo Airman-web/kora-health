@@ -83,3 +83,53 @@ export function login(input: LoginInput): Promise<AuthResponse> {
     body: input,
   });
 }
+
+// Treatment plan types
+export interface PrescribedExercise {
+  id: string;
+  name: string;
+  description: string | null;
+  targetSets: number;
+  targetReps: number;
+  restSeconds: number;
+  frequencyPerWeek: number;
+  videoUrl: string | null;
+}
+
+export interface TreatmentPlan {
+  id: string;
+  title: string;
+  description: string | null;
+  status: "ACTIVE" | "COMPLETED" | "PAUSED";
+  startDate: string;
+  endDate: string | null;
+  exercises: PrescribedExercise[];
+  therapist?: {
+    id: string;
+    fullName: string;
+    specialty: string | null;
+  };
+  patient?: {
+    id: string;
+    fullName: string;
+  };
+}
+
+// Authenticated user info
+export interface UserInfo {
+  id: string;
+  email: string;
+  role: "PATIENT" | "THERAPIST";
+}
+
+export function getMe(token: string): Promise<UserInfo> {
+  return apiRequest<UserInfo>("/auth/me", { token });
+}
+
+export function getTreatmentPlans(token: string): Promise<TreatmentPlan[]> {
+  return apiRequest<TreatmentPlan[]>("/treatment-plans", { token });
+}
+
+export function getTreatmentPlan(token: string, id: string): Promise<TreatmentPlan> {
+  return apiRequest<TreatmentPlan>(`/treatment-plans/${id}`, { token });
+}
