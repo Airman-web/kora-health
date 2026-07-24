@@ -1,98 +1,171 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Kora Health Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+The NestJS-based API service for Kora Health, a mobile-first physiotherapy telehealth platform for Rwanda.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tech Stack
 
-## Description
+- **Framework:** NestJS 11 (TypeScript)
+- **ORM:** Prisma 6
+- **Database:** PostgreSQL (hosted on Supabase)
+- **Authentication:** JWT with bcrypt password hashing
+- **Deployment:** Railway (production)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Prerequisites
 
-## Project setup
+Before setting up locally, you need:
+
+- Node.js version 20 or higher
+- npm (comes with Node.js)
+- Git
+- A Supabase account (for the database)
+- A code editor (VS Code recommended)
+
+## Local Setup
+
+### 1. Clone the repository
 
 ```bash
-$ npm install
+git clone https://github.com/Airman-web/kora-health.git
+cd kora-health/backend
 ```
 
-## Compile and run the project
+### 2. Install dependencies
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+### 3. Set up the database
+
+Create a Supabase project at [supabase.com](https://supabase.com) and copy the Session Pooler connection URL.
+
+### 4. Configure environment variables
+
+Create a file named `.env` inside the `backend/` folder with the following:
+
+```env
+DATABASE_URL="your_supabase_connection_url_here"
+JWT_SECRET="a_long_random_secret_string_at_least_32_characters"
+JWT_EXPIRES_IN="7d"
+```
+
+**Important:** Never commit this file. It is already in `.gitignore`.
+
+### 5. Run database migrations
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npx prisma migrate dev
 ```
+
+This creates all 11 tables in your Supabase database and generates the Prisma Client.
+
+### 6. Start the development server
+
+```bash
+npm run start:dev
+```
+
+The server runs at `http://localhost:3000`. Every code change auto-reloads the server.
+
+## Available Scripts
+
+- `npm run start:dev` - Run in development mode with hot reload
+- `npm run start:prod` - Run compiled production build
+- `npm run build` - Compile TypeScript to JavaScript
+- `npm run lint` - Run ESLint checks
+- `npx prisma studio` - Open a visual database browser
+- `npx prisma migrate dev` - Create and apply a new migration
+
+## API Endpoints
+
+### Authentication
+
+- `POST /auth/register` - Register a new user (Patient or Therapist)
+- `POST /auth/login` - Login and receive a JWT token
+- `GET /auth/me` - Get the current user's info (requires token)
+
+### Treatment Plans (requires JWT)
+
+- `POST /treatment-plans` - Create a new plan with exercises (Therapists only)
+- `GET /treatment-plans` - List plans (therapist sees created plans, patient sees assigned)
+- `GET /treatment-plans/:id` - Get one specific plan with exercises
+- `PATCH /treatment-plans/:id` - Update a plan (Therapists only, owner only)
+- `DELETE /treatment-plans/:id` - Delete a plan (Therapists only, owner only)
+
+### Workout Sessions (requires JWT)
+
+- `POST /workout-sessions` - Start a session with pre-pain log (Patients only)
+- `PATCH /workout-sessions/:id/complete` - Complete a session with post-pain log (Patients only)
+- `GET /workout-sessions` - List sessions (patient sees own, therapist sees patients')
+- `GET /workout-sessions/:id` - Get one session with pain logs
+- `GET /workout-sessions/pain-progress/:patientId` - Get pain time-series for a patient (Therapists only)
+
+## Database Schema
+
+11 models total, organized into 3 domains:
+
+**Identity and profiles**
+- User, PatientProfile, TherapistProfile
+
+**Clinical treatment**
+- TreatmentPlan, PrescribedExercise, WorkoutSession, PainLog
+
+**Booking and payments (schema only, endpoints coming in v0.4)**
+- Appointment, AvailabilitySlot, Payment, SessionFeedback
+
+See `prisma/schema.prisma` for the complete data model.
+
+## Authentication
+
+All protected endpoints require a JWT token in the `Authorization` header:
+
+Tokens expire after 7 days. Send `POST /auth/login` again to get a fresh one.
+
+## Testing the API
+
+The `api-tests/` folder contains VS Code REST Client `.http` files for testing every endpoint locally. Install the REST Client extension in VS Code to use them.
 
 ## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+The backend is deployed on Railway. Deployment happens automatically when code is pushed to the `main` branch on GitHub.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+**Deployment configuration:**
+- `railway.toml` at the repo root defines build and start commands
+- `nixpacks.toml` at the repo root forces Node 20 during builds
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+**Required environment variables in Railway:**
+- `DATABASE_URL`
+- `JWT_SECRET`
+- `JWT_EXPIRES_IN`
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Project Structure
 
-## Resources
+backend/
+├── src/
+│ ├── auth/ Authentication module
+│ │ ├── decorators/ Custom decorators (Roles, CurrentUser)
+│ │ ├── dto/ Request validation classes
+│ │ ├── guards/ JWT and Role guards
+│ │ ├── strategies/ Passport JWT strategy
+│ │ ├── auth.controller.ts
+│ │ ├── auth.module.ts
+│ │ └── auth.service.ts
+│ ├── prisma/ Prisma service (database client)
+│ ├── treatment-plans/ Treatment plan module
+│ ├── workout-sessions/ Workout session and pain log module
+│ ├── app.module.ts
+│ └── main.ts Application entry point
+├── prisma/
+│ ├── schema.prisma Database schema definition
+│ └── migrations/ Migration history
+├── api-tests/ REST Client test files (local only)
+├── .env Local environment variables (never committed)
+└── package.json
 
-Check out a few resources that may come in handy when working with NestJS:
+## Contributing
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+This is a solo project by Atigbi Emmanuel Ayomiku for the Virtual Internship Simulation and for the course Introduction to Softwaere Engineering at the African Leadership University.
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Currently unlicensed. Contact the founder for reuse permissions.
