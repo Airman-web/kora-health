@@ -153,3 +153,6 @@ vite.config.ts.timestamp-*
 CLAUDE.md
 AGENTS.md
 skills-lock.json
+
+# Local API testing files
+api-tests/
