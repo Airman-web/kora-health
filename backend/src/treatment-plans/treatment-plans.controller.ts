@@ -42,4 +42,9 @@ export class TreatmentPlansController {
   remove(@CurrentUser() user: any, @Param('id') id: string) {
     return this.service.remove(user.id, id);
   }
+
+  @Get('exercises/:id')
+  findExerciseById(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.service.findExerciseById(user.id, user.role, id);
+  }
 }

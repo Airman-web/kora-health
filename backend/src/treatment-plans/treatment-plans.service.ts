@@ -151,4 +151,30 @@ export class TreatmentPlansService {
     await this.prisma.treatmentPlan.delete({ where: { id: planId } });
     return { message: 'Treatment plan deleted' };
   }
+
+  async findExerciseById(userId: string, role: string, exerciseId: string) {
+    const exercise = await this.prisma.prescribedExercise.findUnique({
+      where: { id: exerciseId },
+      include: {
+        plan: {
+          include: {
+            patient: { select: { userId: true } },
+            therapist: { select: { userId: true } },
+          },
+        },
+      },
+    });
+
+    if (!exercise) throw new NotFoundException('Exercise not found');
+
+    // Authorization: only assigned patient or plan's therapist can view
+    if (role === 'PATIENT' && exercise.plan.patient.userId !== userId) {
+      throw new ForbiddenException('You cannot view this exercise');
+    }
+    if (role === 'THERAPIST' && exercise.plan.therapist.userId !== userId) {
+      throw new ForbiddenException('You cannot view this exercise');
+    }
+
+    return exercise;
+  }
 }
