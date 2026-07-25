@@ -133,3 +133,69 @@ export function getTreatmentPlans(token: string): Promise<TreatmentPlan[]> {
 export function getTreatmentPlan(token: string, id: string): Promise<TreatmentPlan> {
   return apiRequest<TreatmentPlan>(`/treatment-plans/${id}`, { token });
 }
+
+// Workout session types
+export interface PainLog {
+  id: string;
+  sessionId: string;
+  score: number;
+  timing: "PRE" | "POST";
+  bodyLocation: string | null;
+  createdAt: string;
+}
+
+export interface WorkoutSession {
+  id: string;
+  patientId: string;
+  exerciseId: string;
+  startedAt: string;
+  completedAt: string | null;
+  setsCompleted: number | null;
+  repsCompleted: number | null;
+  durationSeconds: number | null;
+  patientNotes: string | null;
+  exercise?: {
+    id: string;
+    name: string;
+  };
+  painLogs: PainLog[];
+}
+
+export interface StartWorkoutInput {
+  exerciseId: string;
+  prePainScore: number;
+  bodyLocation?: string;
+}
+
+export interface CompleteWorkoutInput {
+  postPainScore: number;
+  setsCompleted: number;
+  repsCompleted: number;
+  durationSeconds: number;
+  patientNotes?: string;
+  bodyLocation?: string;
+}
+
+export function getExerciseById(token: string, exerciseId: string): Promise<PrescribedExercise & { plan: TreatmentPlan }> {
+  return apiRequest(`/treatment-plans/exercises/${exerciseId}`, { token });
+}
+
+export function startWorkoutSession(token: string, input: StartWorkoutInput): Promise<WorkoutSession> {
+  return apiRequest<WorkoutSession>("/workout-sessions", {
+    method: "POST",
+    body: input,
+    token,
+  });
+}
+
+export function completeWorkoutSession(
+  token: string,
+  sessionId: string,
+  input: CompleteWorkoutInput
+): Promise<WorkoutSession> {
+  return apiRequest<WorkoutSession>(`/workout-sessions/${sessionId}/complete`, {
+    method: "PATCH",
+    body: input,
+    token,
+  });
+}
