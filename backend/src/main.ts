@@ -1,3 +1,4 @@
+// CORS enabled: force rebuild trigger
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
