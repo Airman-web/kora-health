@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -20,12 +21,9 @@ export default function LoginPage() {
 
     try {
       const response = await login({ email, password });
-
-      // Store token and user
       localStorage.setItem("kora_token", response.token);
       localStorage.setItem("kora_user", JSON.stringify(response.user));
 
-      // Redirect based on role
       if (response.user.role === "PATIENT") {
         router.push("/patient/dashboard");
       } else {
@@ -44,7 +42,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
       <header className="border-b border-gray-100">
         <div className="container-kora py-4">
           <Link href="/">
@@ -53,7 +50,6 @@ export default function LoginPage() {
         </div>
       </header>
 
-      {/* Main content */}
       <main className="container-kora py-8 md:py-16 max-w-md">
         <h1 className="text-2xl md:text-3xl font-bold text-[color:var(--color-kora-dark)]">
           Welcome back
@@ -80,13 +76,23 @@ export default function LoginPage() {
             <label className="block text-sm font-medium text-[color:var(--color-kora-text)]">
               Password
             </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--color-kora-primary)] focus:border-transparent"
-            />
+            <div className="relative mt-1">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--color-kora-primary)] focus:border-transparent"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[color:var(--color-kora-muted)] hover:text-[color:var(--color-kora-primary)]"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
           </div>
 
           {error && (

@@ -16,6 +16,9 @@ export default function RegisterPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -25,6 +28,12 @@ export default function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -40,11 +49,9 @@ export default function RegisterPage() {
 
       const response = await register(payload);
 
-      // Store token and user info
       localStorage.setItem("kora_token", response.token);
       localStorage.setItem("kora_user", JSON.stringify(response.user));
 
-      // Redirect based on role
       if (response.user.role === "PATIENT") {
         router.push("/patient/dashboard");
       } else {
@@ -63,7 +70,6 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
       <header className="border-b border-gray-100">
         <div className="container-kora py-4">
           <Link href="/">
@@ -72,7 +78,6 @@ export default function RegisterPage() {
         </div>
       </header>
 
-      {/* Main content */}
       <main className="container-kora py-8 md:py-12 max-w-lg">
         <h1 className="text-2xl md:text-3xl font-bold text-[color:var(--color-kora-dark)]">
           Create your Kora Health account
@@ -81,7 +86,6 @@ export default function RegisterPage() {
           Sign up as a patient or a therapist to get started.
         </p>
 
-        {/* Role selector */}
         <div className="mt-6 md:mt-8 flex rounded-lg border border-gray-200 p-1 bg-gray-50">
           <button
             type="button"
@@ -107,7 +111,6 @@ export default function RegisterPage() {
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="mt-6 md:mt-8 space-y-4">
           <div>
             <label className="block text-sm font-medium text-[color:var(--color-kora-text)]">
@@ -139,17 +142,51 @@ export default function RegisterPage() {
             <label className="block text-sm font-medium text-[color:var(--color-kora-text)]">
               Password
             </label>
-            <input
-              type="password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--color-kora-primary)] focus:border-transparent"
-            />
+            <div className="relative mt-1">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--color-kora-primary)] focus:border-transparent"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[color:var(--color-kora-muted)] hover:text-[color:var(--color-kora-primary)]"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
             <p className="mt-1 text-xs text-[color:var(--color-kora-muted)]">
               At least 8 characters.
             </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[color:var(--color-kora-text)]">
+              Confirm password
+            </label>
+            <div className="relative mt-1">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                required
+                minLength={8}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--color-kora-primary)] focus:border-transparent"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((s) => !s)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[color:var(--color-kora-muted)] hover:text-[color:var(--color-kora-primary)]"
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showConfirmPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
           </div>
 
           <div>
