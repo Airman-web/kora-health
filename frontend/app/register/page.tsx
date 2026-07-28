@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { Icon } from "@/components/Icon";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { register, ApiError } from "@/lib/api";
 
 type Role = "PATIENT" | "THERAPIST";
@@ -157,7 +159,7 @@ export default function RegisterPage() {
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[color:var(--color-kora-muted)] hover:text-[color:var(--color-kora-primary)]"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? "🙈" : "👁️"}
+                <Icon icon={showPassword ? faEyeSlash : faEye} />
               </button>
             </div>
             <p className="mt-1 text-xs text-[color:var(--color-kora-muted)]">
@@ -184,7 +186,7 @@ export default function RegisterPage() {
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[color:var(--color-kora-muted)] hover:text-[color:var(--color-kora-primary)]"
                 aria-label={showConfirmPassword ? "Hide password" : "Show password"}
               >
-                {showConfirmPassword ? "🙈" : "👁️"}
+                <Icon icon={showConfirmPassword ? faEyeSlash : faEye} />
               </button>
             </div>
           </div>
