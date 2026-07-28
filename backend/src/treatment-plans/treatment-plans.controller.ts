@@ -47,4 +47,10 @@ export class TreatmentPlansController {
   findExerciseById(@CurrentUser() user: any, @Param('id') id: string) {
     return this.service.findExerciseById(user.id, user.role, id);
   }
+  @Get('patients')
+  @UseGuards(RolesGuard)
+  @Roles('THERAPIST')
+  listAllPatients() {
+    return this.service.listAllPatients();
+  }
 }

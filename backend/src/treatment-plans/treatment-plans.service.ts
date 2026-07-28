@@ -177,4 +177,15 @@ export class TreatmentPlansService {
 
     return exercise;
   }
+  async listAllPatients() {
+    return this.prisma.patientProfile.findMany({
+      select: {
+        id: true,
+        fullName: true,
+        dateOfBirth: true,
+        phoneNumber: true,
+      },
+      orderBy: { fullName: "asc" },
+    });
+  }
 }
