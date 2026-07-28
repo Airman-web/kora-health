@@ -217,3 +217,43 @@ export interface PatientProfile {
   medicalHistory: string | null;
   currentPain: string | null;
 }
+export interface PatientListItem {
+  id: string;
+  fullName: string;
+  dateOfBirth: string;
+  phoneNumber: string;
+}
+
+export function listAllPatients(token: string): Promise<PatientListItem[]> {
+  return apiRequest<PatientListItem[]>("/treatment-plans/patients", { token });
+}
+
+// Create treatment plan input
+export interface CreateExerciseInput {
+  name: string;
+  description?: string;
+  targetSets: number;
+  targetReps: number;
+  restSeconds: number;
+  frequencyPerWeek?: number;
+  videoUrl?: string;
+}
+
+export interface CreateTreatmentPlanInput {
+  patientId: string;
+  title: string;
+  description?: string;
+  endDate?: string;
+  exercises: CreateExerciseInput[];
+}
+
+export function createTreatmentPlan(
+  token: string,
+  input: CreateTreatmentPlanInput
+): Promise<TreatmentPlan> {
+  return apiRequest<TreatmentPlan>("/treatment-plans", {
+    method: "POST",
+    body: input,
+    token,
+  });
+}
