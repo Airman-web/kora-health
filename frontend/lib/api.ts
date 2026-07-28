@@ -199,3 +199,21 @@ export function completeWorkoutSession(
     token,
   });
 }
+
+export interface TherapistProfile {
+  id: string;
+  fullName: string;
+  licenseNumber: string;
+  specialty: string | null;
+  yearsOfExperience: number | null;
+  bio: string | null;
+}
+
+export interface PatientProfile {
+  id: string;
+  fullName: string;
+  dateOfBirth: string;
+  phoneNumber: string;
+  medicalHistory: string | null;
+  currentPain: string | null;
+}
