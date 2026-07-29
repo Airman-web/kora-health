@@ -54,3 +54,10 @@ export class TreatmentPlansController {
     return this.service.listAllPatients();
   }
 }
+
+@Get('patients/:id/detail')
+  @UseGuards(RolesGuard)
+  @Roles('THERAPIST')
+  getPatientDetail(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.service.getPatientDetail(user.id, id);
+  }

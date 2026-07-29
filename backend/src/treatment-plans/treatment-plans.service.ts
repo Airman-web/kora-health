@@ -189,3 +189,71 @@ export class TreatmentPlansService {
     });
   }
 }
+
+async getPatientDetail(therapistUserId: string, patientId: string) {
+    const therapist = await this.prisma.therapistProfile.findUnique({
+      where: { userId: therapistUserId },
+    });
+    if (!therapist) throw new NotFoundException('Therapist profile not found');
+
+    // Verify therapist has a relationship with this patient
+    const anyPlan = await this.prisma.treatmentPlan.findFirst({
+      where: {
+        therapistId: therapist.id,
+        patientId,
+      },
+    });
+
+    if (!anyPlan) {
+      throw new ForbiddenException('You have not treated this patient');
+    }
+
+    const patient = await this.prisma.patientProfile.findUnique({
+      where: { id: patientId },
+      select: {
+        id: true,
+        fullName: true,
+        dateOfBirth: true,
+        phoneNumber: true,
+        medicalHistory: true,
+        currentPain: true,
+        createdAt: true,
+      },
+    });
+
+    if (!patient) throw new NotFoundException('Patient not found');
+
+    // Get all plans by this therapist for this patient
+    const plans = await this.prisma.treatmentPlan.findMany({
+      where: {
+        therapistId: therapist.id,
+        patientId,
+      },
+      include: {
+        exercises: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Get recent workout sessions
+    const sessions = await this.prisma.workoutSession.findMany({
+      where: {
+        patientId,
+        exercise: {
+          plan: { therapistId: therapist.id },
+        },
+      },
+      include: {
+        exercise: { select: { id: true, name: true } },
+        painLogs: { orderBy: { createdAt: 'asc' } },
+      },
+      orderBy: { startedAt: 'desc' },
+      take: 20,
+    });
+
+    return {
+      patient,
+      plans,
+      sessions,
+    };
+  }
