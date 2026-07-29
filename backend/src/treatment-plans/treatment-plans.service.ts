@@ -188,9 +188,8 @@ export class TreatmentPlansService {
       orderBy: { fullName: "asc" },
     });
   }
-}
 
-async getPatientDetail(therapistUserId: string, patientId: string) {
+  async getPatientDetail(therapistUserId: string, patientId: string) {
     const therapist = await this.prisma.therapistProfile.findUnique({
       where: { userId: therapistUserId },
     });
@@ -257,3 +256,4 @@ async getPatientDetail(therapistUserId: string, patientId: string) {
       sessions,
     };
   }
+}

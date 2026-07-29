@@ -24,6 +24,25 @@ export class TreatmentPlansController {
     return this.service.findAll(user.id, user.role);
   }
 
+  @Get('exercises/:id')
+  findExerciseById(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.service.findExerciseById(user.id, user.role, id);
+  }
+
+  @Get('patients')
+  @UseGuards(RolesGuard)
+  @Roles('THERAPIST')
+  listAllPatients() {
+    return this.service.listAllPatients();
+  }
+
+  @Get('patients/:id/detail')
+  @UseGuards(RolesGuard)
+  @Roles('THERAPIST')
+  getPatientDetail(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.service.getPatientDetail(user.id, id);
+  }
+
   @Get(':id')
   findOne(@CurrentUser() user: any, @Param('id') id: string) {
     return this.service.findOne(user.id, user.role, id);
@@ -43,21 +62,4 @@ export class TreatmentPlansController {
     return this.service.remove(user.id, id);
   }
 
-  @Get('exercises/:id')
-  findExerciseById(@CurrentUser() user: any, @Param('id') id: string) {
-    return this.service.findExerciseById(user.id, user.role, id);
-  }
-  @Get('patients')
-  @UseGuards(RolesGuard)
-  @Roles('THERAPIST')
-  listAllPatients() {
-    return this.service.listAllPatients();
-  }
 }
-
-@Get('patients/:id/detail')
-  @UseGuards(RolesGuard)
-  @Roles('THERAPIST')
-  getPatientDetail(@CurrentUser() user: any, @Param('id') id: string) {
-    return this.service.getPatientDetail(user.id, id);
-  }
