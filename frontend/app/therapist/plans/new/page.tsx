@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";import Link from "next/link";
+"use client";
+
+import { useEffect, useState, useMemo, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import {
   faPlus,
@@ -35,7 +38,7 @@ function makeEmptyExercise(): ExerciseFormRow {
   };
 }
 
-export default function CreateTreatmentPlanPage() {
+function CreateTreatmentPlanForm() { 
   const router = useRouter();
   const searchParams = useSearchParams();
   const [patients, setPatients] = useState<PatientListItem[]>([]);
@@ -515,5 +518,19 @@ function PatientPicker({
         </div>
       )}
     </div>
+  );
+}
+
+export default function CreateTreatmentPlanPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container-kora py-6 md:py-10">
+          <p className="text-[color:var(--color-kora-muted)]">Loading...</p>
+        </div>
+      }
+    >
+      <CreateTreatmentPlanForm />
+    </Suspense>
   );
 }
