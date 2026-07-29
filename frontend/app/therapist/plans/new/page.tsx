@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
@@ -8,6 +8,7 @@ import {
   faPlus,
   faTrash,
   faArrowLeft,
+  faMagnifyingGlass,
 } from "@fortawesome/free-solid-svg-icons";
 import { getToken } from "@/lib/auth";
 import {
@@ -168,22 +169,12 @@ export default function CreateTreatmentPlanPage() {
             <label className="block text-sm font-medium text-[color:var(--color-kora-text)]">
               Patient
             </label>
-            <select
-              required
-              value={patientId}
-              onChange={(e) => setPatientId(e.target.value)}
-              disabled={loadingPatients}
-              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--color-kora-primary)] focus:border-transparent bg-white"
-            >
-              <option value="">
-                {loadingPatients ? "Loading patients..." : "Select a patient"}
-              </option>
-              {patients.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.fullName}
-                </option>
-              ))}
-            </select>
+            <PatientPicker
+              patients={patients}
+              loading={loadingPatients}
+              selectedId={patientId}
+              onSelect={setPatientId}
+            />
             {!loadingPatients && patients.length === 0 && (
               <p className="mt-2 text-sm text-[color:var(--color-kora-muted)]">
                 No patients registered yet. Ask a patient to sign up first.
@@ -405,6 +396,117 @@ export default function CreateTreatmentPlanPage() {
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+function PatientPicker({
+  patients,
+  loading,
+  selectedId,
+  onSelect,
+}: {
+  patients: PatientListItem[];
+  loading: boolean;
+  selectedId: string;
+  onSelect: (id: string) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const selectedPatient = patients.find((p) => p.id === selectedId);
+
+  const filtered = useMemo(() => {
+    if (!query.trim()) return patients;
+    const q = query.toLowerCase().trim();
+    return patients.filter(
+      (p) =>
+        p.fullName.toLowerCase().includes(q) ||
+        p.phoneNumber.includes(q)
+    );
+  }, [query, patients]);
+
+  // Close on click outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open]);
+
+  return (
+    <div ref={containerRef} className="relative mt-1">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        disabled={loading}
+        className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg bg-white text-left focus:outline-none focus:ring-2 focus:ring-[color:var(--color-kora-primary)] disabled:opacity-50"
+      >
+        <span className={selectedPatient ? "text-[color:var(--color-kora-text)]" : "text-gray-400"}>
+          {loading
+            ? "Loading patients..."
+            : selectedPatient
+            ? selectedPatient.fullName
+            : "Select a patient"}
+        </span>
+        <Icon icon={faMagnifyingGlass} size="xs" className="text-[color:var(--color-kora-muted)]" />
+      </button>
+
+      {open && !loading && (
+        <div className="absolute z-20 top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-hidden flex flex-col">
+          <div className="p-2 border-b border-gray-100">
+            <input
+              type="text"
+              autoFocus
+              placeholder="Search by name or phone..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[color:var(--color-kora-primary)]"
+            />
+          </div>
+          <div className="overflow-y-auto flex-1">
+            {filtered.length === 0 ? (
+              <p className="p-4 text-sm text-center text-[color:var(--color-kora-muted)]">
+                No patients match your search.
+              </p>
+            ) : (
+              <ul>
+                {filtered.map((p) => (
+                  <li key={p.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSelect(p.id);
+                        setOpen(false);
+                        setQuery("");
+                      }}
+                      className={`
+                        w-full text-left px-4 py-2 hover:bg-[color:var(--color-kora-bg)] transition-colors
+                        ${p.id === selectedId ? "bg-[color:var(--color-kora-bg)]" : ""}
+                      `}
+                    >
+                      <p className="text-sm font-medium text-[color:var(--color-kora-dark)]">
+                        {p.fullName}
+                      </p>
+                      <p className="text-xs text-[color:var(--color-kora-muted)]">
+                        {p.phoneNumber}
+                      </p>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
