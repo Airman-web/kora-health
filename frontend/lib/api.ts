@@ -299,3 +299,9 @@ export function getPainProgress(
     { token }
   );
 }
+
+export function getMyPainProgress(token: string): Promise<PainProgressPoint[]> {
+  return apiRequest<PainProgressPoint[]>("/workout-sessions/my-pain-progress", {
+    token,
+  });
+}
