@@ -42,3 +42,11 @@ export class WorkoutSessionsController {
     return this.service.getPainProgress(user.id, patientId);
   }
 }
+
+@Get('my-pain-progress')
+  @UseGuards(RolesGuard)
+  @Roles('PATIENT')
+  getMyPainProgress(@CurrentUser() user: any) {
+    return this.service.getMyPainProgress(user.id);
+  }
+  

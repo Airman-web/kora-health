@@ -205,3 +205,35 @@ export class WorkoutSessionsService {
     });
   }
 }
+
+async getMyPainProgress(patientUserId: string) {
+    const patient = await this.prisma.patientProfile.findUnique({
+      where: { userId: patientUserId },
+    });
+    if (!patient) throw new NotFoundException('Patient profile not found');
+
+    const sessions = await this.prisma.workoutSession.findMany({
+      where: {
+        patientId: patient.id,
+        completedAt: { not: null },
+      },
+      include: {
+        exercise: { select: { name: true } },
+        painLogs: { orderBy: { createdAt: 'asc' } },
+      },
+      orderBy: { startedAt: 'asc' },
+    });
+
+    return sessions.map((s) => {
+      const prePain = s.painLogs.find((p) => p.timing === 'PRE')?.score ?? null;
+      const postPain = s.painLogs.find((p) => p.timing === 'POST')?.score ?? null;
+      return {
+        sessionId: s.id,
+        date: s.startedAt,
+        exerciseName: s.exercise.name,
+        prePain,
+        postPain,
+        painReduction: prePain !== null && postPain !== null ? prePain - postPain : null,
+      };
+    });
+  }
