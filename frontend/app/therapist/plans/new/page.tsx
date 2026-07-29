@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import {
   faPlus,
@@ -38,6 +37,7 @@ function makeEmptyExercise(): ExerciseFormRow {
 
 export default function CreateTreatmentPlanPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [patients, setPatients] = useState<PatientListItem[]>([]);
   const [loadingPatients, setLoadingPatients] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -50,23 +50,30 @@ export default function CreateTreatmentPlanPage() {
   const [exercises, setExercises] = useState<ExerciseFormRow[]>([makeEmptyExercise()]);
 
   useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      router.push("/login");
-      return;
-    }
+  const token = getToken();
+  if (!token) {
+    router.push("/login");
+    return;
+  }
 
-    listAllPatients(token)
-      .then((data) => setPatients(data))
-      .catch((err) => {
-        if (err instanceof ApiError && err.statusCode === 401) {
-          router.push("/login");
-        } else {
-          setError(err.message || "Failed to load patients");
-        }
-      })
-      .finally(() => setLoadingPatients(false));
-  }, [router]);
+  listAllPatients(token)
+    .then((data) => {
+      setPatients(data);
+      // Pre-select patient if URL has ?patientId=...
+      const preselect = searchParams.get("patientId");
+      if (preselect && data.some((p) => p.id === preselect)) {
+        setPatientId(preselect);
+      }
+    })
+    .catch((err) => {
+      if (err instanceof ApiError && err.statusCode === 401) {
+        router.push("/login");
+      } else {
+        setError(err.message || "Failed to load patients");
+      }
+    })
+    .finally(() => setLoadingPatients(false));
+}, [router, searchParams]);
 
   function updateExercise(id: string, field: keyof ExerciseFormRow, value: string | number) {
     setExercises((prev) =>

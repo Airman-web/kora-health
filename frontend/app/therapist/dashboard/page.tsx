@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
@@ -11,17 +11,25 @@ import {
   faChartLine,
 } from "@fortawesome/free-solid-svg-icons";
 import { getToken } from "@/lib/auth";
-import { getTreatmentPlans, TreatmentPlan, ApiError } from "@/lib/api";
+import {
+  getTreatmentPlans,
+  listAllPatients,
+  TreatmentPlan,
+  PatientListItem,
+  ApiError,
+} from "@/lib/api";
 
 interface UniquePatient {
   id: string;
   fullName: string;
   planCount: number;
+  hasActivePlans: boolean;
 }
 
 export default function TherapistDashboard() {
   const router = useRouter();
   const [plans, setPlans] = useState<TreatmentPlan[]>([]);
+  const [allPatients, setAllPatients] = useState<PatientListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,8 +40,11 @@ export default function TherapistDashboard() {
       return;
     }
 
-    getTreatmentPlans(token)
-      .then((data) => setPlans(data))
+    Promise.all([getTreatmentPlans(token), listAllPatients(token)])
+      .then(([plansData, patientsData]) => {
+        setPlans(plansData);
+        setAllPatients(patientsData);
+      })
       .catch((err) => {
         if (err instanceof ApiError && err.statusCode === 401) {
           router.push("/login");
@@ -44,19 +55,17 @@ export default function TherapistDashboard() {
       .finally(() => setLoading(false));
   }, [router]);
 
-  // Derive unique patients from plans
-  const uniquePatients: UniquePatient[] = [];
-  const seenPatientIds = new Set<string>();
-  plans.forEach((plan) => {
-    if (plan.patient && !seenPatientIds.has(plan.patient.id)) {
-      seenPatientIds.add(plan.patient.id);
-      uniquePatients.push({
-        id: plan.patient.id,
-        fullName: plan.patient.fullName,
-        planCount: plans.filter((p) => p.patient?.id === plan.patient!.id).length,
-      });
-    }
-  });
+  const patientSummaries: UniquePatient[] = useMemo(() => {
+    return allPatients.map((p) => {
+      const patientPlans = plans.filter((plan) => plan.patient?.id === p.id);
+      return {
+        id: p.id,
+        fullName: p.fullName,
+        planCount: patientPlans.length,
+        hasActivePlans: patientPlans.some((plan) => plan.status === "ACTIVE"),
+      };
+    });
+  }, [allPatients, plans]);
 
   const activePlans = plans.filter((p) => p.status === "ACTIVE");
   const completedPlans = plans.filter((p) => p.status === "COMPLETED");
@@ -98,51 +107,66 @@ export default function TherapistDashboard() {
         <>
           {/* Stats cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <StatCard icon={faUsers} label="Patients" value={uniquePatients.length} />
-            <StatCard icon={faClipboardList} label="Active plans" value={activePlans.length} />
-            <StatCard icon={faChartLine} label="Completed plans" value={completedPlans.length} />
+            <StatCard
+              icon={faUsers}
+              label="Registered patients"
+              value={allPatients.length}
+            />
+            <StatCard
+              icon={faClipboardList}
+              label="Active plans"
+              value={activePlans.length}
+            />
+            <StatCard
+              icon={faChartLine}
+              label="Completed plans"
+              value={completedPlans.length}
+            />
           </div>
 
           {/* Patients preview */}
           <section className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-[color:var(--color-kora-dark)]">
-                Your patients
+                Patients
               </h2>
-              {uniquePatients.length > 3 && (
-                <Link
-                  href="/therapist/patients"
-                  className="text-sm font-medium text-[color:var(--color-kora-primary)] hover:underline"
-                >
-                  View all
-                </Link>
-              )}
+              <Link
+                href="/therapist/patients"
+                className="text-sm font-medium text-[color:var(--color-kora-primary)] hover:underline"
+              >
+                View all
+              </Link>
             </div>
 
-            {uniquePatients.length === 0 ? (
+            {patientSummaries.length === 0 ? (
               <EmptyState
                 title="No patients yet"
-                description="Create your first treatment plan to start working with a patient."
+                description="Once patients sign up on the platform, they'll appear here."
                 actionHref="/therapist/plans/new"
                 actionLabel="Create treatment plan"
               />
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {uniquePatients.slice(0, 6).map((patient) => (
+                {patientSummaries.slice(0, 6).map((patient) => (
                   <Link
                     key={patient.id}
-                    href={`/therapist/patients/${patient.id}`}
+                    href={
+                      patient.planCount > 0
+                        ? `/therapist/patients/${patient.id}`
+                        : `/therapist/plans/new?patientId=${patient.id}`
+                    }
                     className="block p-5 rounded-lg bg-white border border-gray-200 hover:border-[color:var(--color-kora-primary)] hover:shadow-sm transition-all"
                   >
                     <h3 className="font-semibold text-[color:var(--color-kora-dark)]">
                       {patient.fullName}
                     </h3>
                     <p className="mt-1 text-sm text-[color:var(--color-kora-muted)]">
-                      {patient.planCount} treatment plan
-                      {patient.planCount !== 1 ? "s" : ""}
+                      {patient.planCount > 0
+                        ? `${patient.planCount} plan${patient.planCount !== 1 ? "s" : ""}${patient.hasActivePlans ? " · active" : ""}`
+                        : "No plans yet"}
                     </p>
                     <p className="mt-3 text-sm font-medium text-[color:var(--color-kora-primary)]">
-                      View patient →
+                      {patient.planCount > 0 ? "View patient →" : "Assign a plan →"}
                     </p>
                   </Link>
                 ))}
@@ -210,7 +234,6 @@ export default function TherapistDashboard() {
   );
 }
 
-// Small helper components inline
 function StatCard({
   icon,
   label,
