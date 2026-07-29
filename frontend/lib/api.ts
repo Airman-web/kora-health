@@ -257,3 +257,45 @@ export function createTreatmentPlan(
     token,
   });
 }
+
+export interface PatientDetailResponse {
+  patient: {
+    id: string;
+    fullName: string;
+    dateOfBirth: string;
+    phoneNumber: string;
+    medicalHistory: string | null;
+    currentPain: string | null;
+    createdAt: string;
+  };
+  plans: TreatmentPlan[];
+  sessions: WorkoutSession[];
+}
+
+export interface PainProgressPoint {
+  sessionId: string;
+  date: string;
+  exerciseName: string;
+  prePain: number | null;
+  postPain: number | null;
+  painReduction: number | null;
+}
+
+export function getPatientDetail(
+  token: string,
+  patientId: string
+): Promise<PatientDetailResponse> {
+  return apiRequest<PatientDetailResponse>(`/treatment-plans/patients/${patientId}/detail`, {
+    token,
+  });
+}
+
+export function getPainProgress(
+  token: string,
+  patientId: string
+): Promise<PainProgressPoint[]> {
+  return apiRequest<PainProgressPoint[]>(
+    `/workout-sessions/pain-progress/${patientId}`,
+    { token }
+  );
+}
