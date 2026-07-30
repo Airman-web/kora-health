@@ -204,9 +204,8 @@ export class WorkoutSessionsService {
       };
     });
   }
-}
 
-async getMyPainProgress(patientUserId: string) {
+  async getMyPainProgress(patientUserId: string) {
     const patient = await this.prisma.patientProfile.findUnique({
       where: { userId: patientUserId },
     });
@@ -237,3 +236,4 @@ async getMyPainProgress(patientUserId: string) {
       };
     });
   }
+}

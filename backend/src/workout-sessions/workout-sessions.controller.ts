@@ -31,22 +31,22 @@ export class WorkoutSessionsController {
     return this.service.findAll(user.id, user.role);
   }
 
-  @Get(':id')
-  findOne(@CurrentUser() user: any, @Param('id') id: string) {
-    return this.service.findOne(user.id, user.role, id);
-  }
   @Get('pain-progress/:patientId')
   @UseGuards(RolesGuard)
   @Roles('THERAPIST')
   getPainProgress(@CurrentUser() user: any, @Param('patientId') patientId: string) {
     return this.service.getPainProgress(user.id, patientId);
   }
-}
 
-@Get('my-pain-progress')
+  @Get('my-pain-progress')
   @UseGuards(RolesGuard)
   @Roles('PATIENT')
   getMyPainProgress(@CurrentUser() user: any) {
     return this.service.getMyPainProgress(user.id);
   }
-  
+
+  @Get(':id')
+  findOne(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.service.findOne(user.id, user.role, id);
+  }
+}
