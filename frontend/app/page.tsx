@@ -218,7 +218,7 @@ export default function HomePage() {
             <div className="rounded-2xl overflow-hidden bg-white border border-kora">
               <div className="relative aspect-[3/4]">
                 <Image
-                  src="/images/practitioner-red.jpg"
+                  src="/images/practitioner-red.jpg.JPG"
                   alt="Kora Health practitioner in her clinic"
                   fill
                   sizes="(max-width: 640px) 100vw, 400px"
@@ -241,7 +241,7 @@ export default function HomePage() {
             <div className="rounded-2xl overflow-hidden bg-white border border-kora">
               <div className="relative aspect-[3/4]">
                 <Image
-                  src="/images/practitioner-pink.jpg"
+                  src="/images/Kora_3.png"
                   alt="Kora Health practitioner during a session"
                   fill
                   sizes="(max-width: 640px) 100vw, 400px"
@@ -253,7 +253,7 @@ export default function HomePage() {
                   Physiotherapist
                 </p>
                 <p className="mt-1 font-semibold text-kora-dark">
-                  Kigali practice
+                  Dr. David Niyonzima
                 </p>
                 <p className="mt-1 text-sm text-kora-soft">
                   Post-surgical recovery
