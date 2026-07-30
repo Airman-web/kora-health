@@ -15,7 +15,7 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { logout, getUser } from "@/lib/auth";
-import { KoraUser } from "@/lib/auth";
+import type { KoraUser } from "@/lib/auth";
 
 interface NavItem {
   label: string;
@@ -39,7 +39,6 @@ export function TherapistSidebar() {
     setUser(getUser());
   }, []);
 
-  // Close mobile menu when clicking a link
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
@@ -47,13 +46,11 @@ export function TherapistSidebar() {
   return (
     <>
       {/* Mobile top bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-100 flex items-center justify-between px-4 py-3">
-        <Link href="/therapist/dashboard">
-          <Logo size="sm" />
-        </Link>
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-kora flex items-center justify-between px-4 py-3">
+        <Logo size="sm" href="/therapist/dashboard" />
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 text-[color:var(--color-kora-text)] hover:text-[color:var(--color-kora-primary)]"
+          className="p-2 text-kora-dark hover:text-kora-primary"
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
         >
           <Icon icon={mobileOpen ? faXmark : faBars} size="lg" />
@@ -63,7 +60,7 @@ export function TherapistSidebar() {
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-40 bg-black/40"
+          className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -71,33 +68,32 @@ export function TherapistSidebar() {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-gray-100
+          fixed top-0 left-0 z-50 h-full w-72 bg-white border-r border-kora
           transform transition-transform duration-200 flex flex-col
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
           lg:translate-x-0
         `}
       >
         {/* Logo */}
-        <div className="px-6 py-6 border-b border-gray-100">
-          <Link href="/therapist/dashboard">
-            <Logo size="md" />
-          </Link>
+        <div className="px-6 py-6 border-b border-kora">
+          <Logo size="md" href="/therapist/dashboard" />
         </div>
 
         {/* Nav */}
         <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+            const isActive =
+              pathname === item.href || pathname.startsWith(item.href + "/");
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`
-                  flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                  flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
                   ${
                     isActive
-                      ? "bg-[color:var(--color-kora-bg)] text-[color:var(--color-kora-primary)]"
-                      : "text-[color:var(--color-kora-text)] hover:bg-gray-50 hover:text-[color:var(--color-kora-primary)]"
+                      ? "bg-kora-light text-kora-primary"
+                      : "text-kora-dark hover:bg-kora-surface-alt hover:text-kora-primary"
                   }
                 `}
               >
@@ -109,20 +105,18 @@ export function TherapistSidebar() {
         </nav>
 
         {/* User info + logout */}
-        <div className="border-t border-gray-100 px-4 py-4">
+        <div className="border-t border-kora px-4 py-4">
           {user && (
             <div className="px-3 py-2 mb-2">
-              <p className="text-xs text-[color:var(--color-kora-muted)]">
-                Signed in as
-              </p>
-              <p className="text-sm font-medium text-[color:var(--color-kora-dark)] truncate">
+              <p className="text-xs text-kora-soft">Signed in as</p>
+              <p className="text-sm font-medium text-kora-dark truncate">
                 {user.email}
               </p>
             </div>
           )}
           <button
             onClick={logout}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[color:var(--color-kora-text)] hover:bg-gray-50 hover:text-[color:var(--color-kora-primary)] transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-kora-dark hover:bg-kora-surface-alt hover:text-kora-primary transition-colors"
           >
             <Icon icon={faRightFromBracket} className="w-5" />
             <span>Sign out</span>
