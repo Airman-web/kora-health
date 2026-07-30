@@ -12,6 +12,16 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 export class TreatmentPlansController {
   constructor(private service: TreatmentPlansService) {}
 
+  @Get('__health')
+  health() {
+    return { 
+      status: 'ok', 
+      version: 'route-order-fixed-v3',
+      timestamp: new Date().toISOString(),
+      endpoints: ['patients', 'patients/:id/detail']
+    };
+  }
+
   @Post()
   @UseGuards(RolesGuard)
   @Roles('THERAPIST')
