@@ -95,4 +95,4 @@ frontend/
 Vercel auto-deploys on every push to the `main` branch.
 ```
 
-## Project structure
+
