@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kora Health Frontend
 
-## Getting Started
+Next.js web application for the Kora Health platform.
 
-First, run the development server:
+**Live URL:** https://kora-health.vercel.app
+
+## Tech stack
+
+- Next.js 16 with App Router
+- React 19
+- Tailwind CSS 4
+- Recharts (data visualization)
+- Font Awesome (icons)
+- Turbopack (dev server)
+
+## Prerequisites
+
+- Node.js 20+
+- npm 10+
+- A running Kora Health backend (locally or deployed)
+
+## Environment variables
+
+Create `frontend/.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
+For production this points to your deployed backend URL.
+
+## Installation
+
+```bash
+cd frontend
+npm install
+```
+
+## Running locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app runs on `http://localhost:3001` with Turbopack for fast reload.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+For production build:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm run start
 
-## Learn More
+## Project structure
 
-To learn more about Next.js, take a look at the following resources:
+frontend/
+├── app/ # Next.js App Router pages
+│ ├── layout.tsx # Root layout with Inter font
+│ ├── page.tsx # Landing page
+│ ├── globals.css # Global styles and Kora design tokens
+│ ├── about/ # About page
+│ ├── gallery/ # Gallery page
+│ ├── login/ # Sign in
+│ ├── register/ # Sign up (patient or therapist)
+│ ├── patient/
+│ │ ├── dashboard/ # Patient home
+│ │ ├── workout/ # Guided exercise session
+│ │ └── progress/ # Personal pain history
+│ └── therapist/
+│ ├── layout.tsx # Sidebar layout for therapist section
+│ ├── dashboard/ # Therapist home
+│ ├── patients/ # Patients list and detail
+│ ├── plans/ # Treatment plans list and creation
+│ └── settings/ # Settings (placeholder)
+├── components/ # Shared React components
+│ ├── Logo.tsx
+│ ├── Icon.tsx
+│ ├── PublicNav.tsx
+│ ├── Footer.tsx
+│ ├── AuthHeader.tsx
+│ └── TherapistSidebar.tsx
+├── lib/ # Client-side helpers
+│ ├── api.ts # API client for the backend
+│ └── auth.ts # Token and user management
+└── public/
+└── images/ # Static images used in the app
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment (Vercel)
 
-## Deploy on Vercel
+1. Import the GitHub repository into Vercel
+2. Set root directory to `frontend`
+3. Add environment variable: `NEXT_PUBLIC_API_URL` set to your deployed backend URL
+4. Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Vercel auto-deploys on every push to the `main` branch.
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project structure
