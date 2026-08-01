@@ -1,171 +1,173 @@
 # Kora Health Backend
 
-The NestJS-based API service for Kora Health, a mobile-first physiotherapy telehealth platform for Rwanda.
+NestJS REST API for the Kora Health physiotherapy telehealth platform.
 
-## Tech Stack
+**Base URL (production):** https://kora-health-production.up.railway.app
 
-- **Framework:** NestJS 11 (TypeScript)
-- **ORM:** Prisma 6
-- **Database:** PostgreSQL (hosted on Supabase)
-- **Authentication:** JWT with bcrypt password hashing
-- **Deployment:** Railway (production)
+## Tech stack
+
+- NestJS 11 (TypeScript)
+- Prisma 6 ORM
+- PostgreSQL (via Supabase)
+- JWT authentication with Passport
+- bcrypt for password hashing
 
 ## Prerequisites
 
-Before setting up locally, you need:
+- Node.js 20+
+- npm 10+
+- PostgreSQL database
 
-- Node.js version 20 or higher
-- npm (comes with Node.js)
-- Git
-- A Supabase account (for the database)
-- A code editor (VS Code recommended)
+## Environment variables
 
-## Local Setup
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/Airman-web/kora-health.git
-cd kora-health/backend
-```
-
-### 2. Install dependencies
-
-```bash
-npm install
-```
-
-### 3. Set up the database
-
-Create a Supabase project at [supabase.com](https://supabase.com) and copy the Session Pooler connection URL.
-
-### 4. Configure environment variables
-
-Create a file named `.env` inside the `backend/` folder with the following:
+Create `backend/.env` with:
 
 ```env
-DATABASE_URL="your_supabase_connection_url_here"
-JWT_SECRET="a_long_random_secret_string_at_least_32_characters"
+DATABASE_URL="postgresql://user:password@host:port/database"
+JWT_SECRET="a-long-random-secret-at-least-32-characters"
 JWT_EXPIRES_IN="7d"
+PORT=3000
 ```
 
-**Important:** Never commit this file. It is already in `.gitignore`.
-
-### 5. Run database migrations
+## Installation
 
 ```bash
-npx prisma migrate dev
+cd backend
+npm install
+npx prisma generate
+npx prisma migrate deploy
 ```
 
-This creates all 11 tables in your Supabase database and generates the Prisma Client.
-
-### 6. Start the development server
+## Running locally
 
 ```bash
 npm run start:dev
 ```
 
-The server runs at `http://localhost:3000`. Every code change auto-reloads the server.
+The server runs on `http://localhost:3000` with hot reload.
 
-## Available Scripts
+For production build:
 
-- `npm run start:dev` - Run in development mode with hot reload
-- `npm run start:prod` - Run compiled production build
-- `npm run build` - Compile TypeScript to JavaScript
-- `npm run lint` - Run ESLint checks
-- `npx prisma studio` - Open a visual database browser
-- `npx prisma migrate dev` - Create and apply a new migration
+```bash
+npm run build
+npm run start:prod
+```
 
-## API Endpoints
+## Database schema
+
+The database has 11 models managed by Prisma:
+
+- **User** — authentication and role
+- **PatientProfile** — patient information
+- **TherapistProfile** — therapist information and credentials
+- **TreatmentPlan** — plans prescribed by therapists for patients
+- **PrescribedExercise** — exercises within a treatment plan
+- **WorkoutSession** — patient's execution of a prescribed exercise
+- **PainLog** — pain ratings before and after workouts
+- **Appointment** — scheduled sessions (deferred)
+- **AvailabilitySlot** — therapist availability (deferred)
+- **Payment** — payment records (deferred)
+- **SessionFeedback** — post-session feedback (deferred)
+
+To view the current schema:
+
+```bash
+cat prisma/schema.prisma
+```
+
+To open Prisma Studio for browsing your data:
+
+```bash
+npx prisma studio
+```
+
+## API endpoints
 
 ### Authentication
 
-- `POST /auth/register` - Register a new user (Patient or Therapist)
-- `POST /auth/login` - Login and receive a JWT token
-- `GET /auth/me` - Get the current user's info (requires token)
+- `POST /auth/register` — create a new account (patient or therapist)
+- `POST /auth/login` — authenticate and receive a JWT token
+- `GET /auth/me` — get the currently authenticated user (requires JWT)
 
-### Treatment Plans (requires JWT)
+### Treatment plans
 
-- `POST /treatment-plans` - Create a new plan with exercises (Therapists only)
-- `GET /treatment-plans` - List plans (therapist sees created plans, patient sees assigned)
-- `GET /treatment-plans/:id` - Get one specific plan with exercises
-- `PATCH /treatment-plans/:id` - Update a plan (Therapists only, owner only)
-- `DELETE /treatment-plans/:id` - Delete a plan (Therapists only, owner only)
+- `POST /treatment-plans` — create a plan (therapist only)
+- `GET /treatment-plans` — list plans for the current user
+- `GET /treatment-plans/:id` — get one plan
+- `GET /treatment-plans/exercises/:id` — get one exercise from a plan
+- `GET /treatment-plans/patients` — list all registered patients (therapist only)
+- `GET /treatment-plans/patients/:id/detail` — full patient detail with plans and workouts (therapist only)
+- `PATCH /treatment-plans/:id` — update a plan (therapist only)
+- `DELETE /treatment-plans/:id` — delete a plan (therapist only)
 
-### Workout Sessions (requires JWT)
+### Workout sessions
 
-- `POST /workout-sessions` - Start a session with pre-pain log (Patients only)
-- `PATCH /workout-sessions/:id/complete` - Complete a session with post-pain log (Patients only)
-- `GET /workout-sessions` - List sessions (patient sees own, therapist sees patients')
-- `GET /workout-sessions/:id` - Get one session with pain logs
-- `GET /workout-sessions/pain-progress/:patientId` - Get pain time-series for a patient (Therapists only)
+- `POST /workout-sessions` — start a workout with pre-workout pain rating
+- `PATCH /workout-sessions/:id/complete` — complete the workout with post-workout pain
+- `GET /workout-sessions` — list sessions for the current user
+- `GET /workout-sessions/:id` — get one session
+- `GET /workout-sessions/pain-progress/:patientId` — pain data for a patient (therapist only)
+- `GET /workout-sessions/my-pain-progress` — pain data for the current patient
 
-## Database Schema
+All non-auth endpoints require an `Authorization: Bearer <jwt>` header.
 
-11 models total, organized into 3 domains:
+## Authorization
 
-**Identity and profiles**
-- User, PatientProfile, TherapistProfile
+The API uses role-based access control:
 
-**Clinical treatment**
-- TreatmentPlan, PrescribedExercise, WorkoutSession, PainLog
+- Patients can only see and modify their own data
+- Therapists can only see patients who they've prescribed plans to
+- All requests are authenticated via JWT (except `/auth/register` and `/auth/login`)
 
-**Booking and payments (schema only, endpoints coming in v0.4)**
-- Appointment, AvailabilitySlot, Payment, SessionFeedback
+## Deployment (Railway)
 
-See `prisma/schema.prisma` for the complete data model.
+The backend is configured for Railway deployment via `railway.toml` and
+`nixpacks.toml` at the repository root.
 
-## Authentication
+Required Railway environment variables:
 
-All protected endpoints require a JWT token in the `Authorization` header:
-
-Tokens expire after 7 days. Send `POST /auth/login` again to get a fresh one.
-
-## Testing the API
-
-The `api-tests/` folder contains VS Code REST Client `.http` files for testing every endpoint locally. Install the REST Client extension in VS Code to use them.
-
-## Deployment
-
-The backend is deployed on Railway. Deployment happens automatically when code is pushed to the `main` branch on GitHub.
-
-**Deployment configuration:**
-- `railway.toml` at the repo root defines build and start commands
-- `nixpacks.toml` at the repo root forces Node 20 during builds
-
-**Required environment variables in Railway:**
 - `DATABASE_URL`
 - `JWT_SECRET`
-- `JWT_EXPIRES_IN`
+- `JWT_EXPIRES_IN=7d`
+- `PORT=8080`
 
-## Project Structure
+After each git push, verify the deployment status in the Railway dashboard.
+If Railway shows an "Update available" indicator, click it to trigger the
+new deployment.
 
-backend/
-├── src/
-│ ├── auth/ Authentication module
-│ │ ├── decorators/ Custom decorators (Roles, CurrentUser)
-│ │ ├── dto/ Request validation classes
-│ │ ├── guards/ JWT and Role guards
-│ │ ├── strategies/ Passport JWT strategy
-│ │ ├── auth.controller.ts
-│ │ ├── auth.module.ts
-│ │ └── auth.service.ts
-│ ├── prisma/ Prisma service (database client)
-│ ├── treatment-plans/ Treatment plan module
-│ ├── workout-sessions/ Workout session and pain log module
-│ ├── app.module.ts
-│ └── main.ts Application entry point
-├── prisma/
-│ ├── schema.prisma Database schema definition
-│ └── migrations/ Migration history
-├── api-tests/ REST Client test files (local only)
-├── .env Local environment variables (never committed)
-└── package.json
+## Testing the API manually
 
-## Contributing
+Once running, you can test with curl:
 
-This is a solo project by Atigbi Emmanuel Ayomiku for the Virtual Internship Simulation and for the course Introduction to Softwaere Engineering at the African Leadership University.
+**Register a patient:**
 
-## License
+```bash
+curl -X POST http://localhost:3000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "TestPassword123",
+    "role": "PATIENT",
+    "fullName": "Test User",
+    "phoneNumber": "+250788000000",
+    "dateOfBirth": "1990-01-01"
+  }'
+```
 
-Currently unlicensed. Contact the founder for reuse permissions.
+**Log in:**
+
+```bash
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "TestPassword123"
+  }'
+```
+
+Save the returned `token` and use it in subsequent requests:
+
+```bash
+curl http://localhost:3000/auth/me \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
