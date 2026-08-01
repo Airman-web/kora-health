@@ -1,62 +1,321 @@
 # Kora Health
 
-A mobile-first physiotherapy telehealth platform built for Rwanda.
+A mobile-first physiotherapy telehealth platform for Rwanda.
 
-Kora Health connects patients with licensed physiotherapists for remote rehabilitation, including video consultations, prescribed exercise plans, mandatory pain-scale tracking (0-10), MTN Mobile Money payments, WhatsApp appointment reminders, and optional AI-powered form checking that runs entirely on the patient's own device.
+**Live application:** https://kora-health.vercel.app
+**Backend API:** https://kora-health-production.up.railway.app
+**Repository:** https://github.com/Airman-web/kora-health
 
-## Current Version: v0.3 (Alpha)
+Kora Health connects Rwandan patients with licensed physiotherapists remotely.
+Therapists prescribe personalised exercise plans. Patients log pain before and
+after every workout. Progress becomes measurable data both sides can see.
 
-This release is a functional Minimum Viable Product covering the core clinical workflow: authentication, treatment plan management, workout logging, and pain progress tracking. Booking, video consultations, Mobile Money payments, WhatsApp reminders, and the AI form-checking feature are on the roadmap for later versions.
+Rwanda has approximately 186 registered physiotherapists for a population of
+14.4 million. This project closes that distance by moving guided rehabilitation
+into the phone.
 
-### What is included in v0.3
+## Table of contents
 
-- Patient and Therapist registration and login with JWT authentication
-- Role-based access control
-- Therapists creating personalized treatment plans with prescribed exercises
-- Patients viewing their assigned treatment plans
-- Patients logging workout sessions with pre and post pain scores
-- Therapists tracking patient pain reduction over time
-- Deployed backend accessible via public API
+- [Live demo](#live-demo)
+- [Test credentials](#test-credentials)
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Architecture](#architecture)
+- [Project structure](#project-structure)
+- [Getting started](#getting-started)
+- [Environment variables](#environment-variables)
+- [Running the project locally](#running-the-project-locally)
+- [Deployment](#deployment)
+- [Deferred features](#deferred-features)
+- [License](#license)
 
-### What is on the roadmap for v0.4 and beyond
+## Live demo
 
-- Appointment booking calendar
-- Live video consultations via Jitsi
-- MTN Mobile Money payments
-- WhatsApp-based appointment reminders
-- AI-powered exercise form checking via MediaPipe (client-side, privacy preserving)
-- Full Next.js frontend interface
-- Kinyarwanda and French language support
+The application is deployed and publicly accessible:
 
-## Repository Structure
+- **Web app (users):** https://kora-health.vercel.app
+- **API (developers):** https://kora-health-production.up.railway.app
 
-This is a monorepo containing both the backend and (soon) the frontend.
+## Test credentials
 
-## Live Deployment
+You can use these accounts to test the deployed app immediately:
 
-- **Backend API:** kora-health-production.up.railway.app
+**Patient account:**
+- Email: `patient@kora.rw`
+- Password: `TestPassword123`
 
-## Tech Stack
+**Therapist account:**
+- Email: `therapist@kora.rw`
+- Password: `TestPassword123`
 
-**Backend:** NestJS (TypeScript), Prisma ORM, PostgreSQL, JWT authentication, bcrypt password hashing
-**Database:** Supabase (managed PostgreSQL)
-**Deployment:** Railway (backend), Supabase (database)
+New accounts can also be created directly at
+[kora-health.vercel.app/register](https://kora-health.vercel.app/register).
 
-## Documentation
+## Features
 
-- Backend setup and API reference: [backend/README.md](./backend/README.md)
-- System design and requirements: Available in the project SRS document
+### Patient side
 
-## Founder
+- Register and log in with role selection
+- View prescribed treatment plans on a personal dashboard
+- Follow guided exercise sessions with pre and post pain rating (0-10 scale)
+- Track pain progress over time through visual charts
+- Access personal workout history
 
-Atigbi Emmanuel Ayomiku
-Software Engineering Student, African Leadership University
-Kigali, Rwanda
+### Therapist side
 
-## Status
+- Register with license verification information
+- View all registered patients in the platform
+- Search patients by name or phone number
+- View individual patient details with clinical history
+- Create treatment plans with multiple prescribed exercises
+- Configure exercise parameters: sets, reps, rest periods, weekly frequency
+- Monitor patient adherence and pain progression
+- View pain progression charts per patient
 
-Active development. Currently building v0.3 for private alpha testing with a Rwandan physiotherapy practice.
+### System-wide
 
-## Acknowledgment
+- JWT-based authentication with role-based access control
+- Responsive design that works on mobile and desktop
+- Real-time data updates through the API
+- Secure password hashing with bcrypt
 
-This project was developed as part of the Virtual Internship Simulation (VIS) and for the course Introduction to Softwaere Engineering at African Leadership University.
+## Tech stack
+
+**Backend**
+- NestJS 11 (TypeScript)
+- Prisma ORM
+- PostgreSQL hosted on Supabase
+- JSON Web Tokens for authentication
+- Passport JWT strategy
+- bcrypt for password hashing
+
+**Frontend**
+- Next.js 16 with App Router and Turbopack
+- Tailwind CSS 4
+- Recharts for data visualization
+- Font Awesome for icons
+- React 19
+
+**Deployment**
+- Backend: Railway
+- Frontend: Vercel
+- Database: Supabase (PostgreSQL)
+
+## Architecture
+
+┌─────────────────┐ ┌──────────────────┐ ┌─────────────────┐
+│ │ HTTPS │ │ Prisma │ │
+│ Next.js │────────▶│ NestJS API │────────▶│ PostgreSQL │
+│ (Vercel) │◀────────│ (Railway) │◀────────│ (Supabase) │
+│ │ JSON │ │ │ │
+└─────────────────┘ └──────────────────┘ └─────────────────┘
+Frontend REST API Database
+
+
+The frontend calls the backend REST API, authenticates users with JWT, and
+renders the UI. The backend enforces role-based authorization on every
+endpoint and stores all clinical data in PostgreSQL through Prisma.
+
+## Project structure
+
+kora-health/
+├── backend/ # NestJS API
+│ ├── prisma/
+│ │ ├── schema.prisma # Database schema (11 models)
+│ │ └── migrations/ # Migration history
+│ ├── src/
+│ │ ├── auth/ # Authentication module
+│ │ ├── treatment-plans/ # Treatment plans module
+│ │ ├── workout-sessions/ # Workout sessions module
+│ │ ├── prisma/ # Prisma service (global)
+│ │ ├── app.module.ts
+│ │ └── main.ts
+│ ├── package.json
+│ └── README.md
+├── frontend/ # Next.js web app
+│ ├── app/ # App Router pages
+│ │ ├── page.tsx # Landing page
+│ │ ├── about/ # About page
+│ │ ├── gallery/ # Gallery page
+│ │ ├── login/ # Login page
+│ │ ├── register/ # Register page
+│ │ ├── patient/ # Patient dashboards and screens
+│ │ └── therapist/ # Therapist dashboards and screens
+│ ├── components/ # Shared React components
+│ ├── lib/ # API client and auth helpers
+│ ├── public/ # Static assets and images
+│ └── package.json
+├── shared/ # Shared type definitions
+├── railway.toml # Railway deployment config
+├── nixpacks.toml # Nixpacks build config
+└── README.md # This file
+
+
+## Getting started
+
+### Prerequisites
+
+You need the following installed on your machine:
+
+- **Node.js** version 20 or higher
+- **npm** version 10 or higher (comes with Node.js)
+- **Git**
+- A **PostgreSQL** database (locally or a free Supabase project)
+
+Check your Node and npm versions:
+
+```bash
+node --version
+npm --version
+```
+
+### Clone the repository
+
+```bash
+git clone https://github.com/Airman-web/kora-health.git
+cd kora-health
+```
+
+## Environment variables
+
+The backend and frontend each need their own `.env` files.
+
+### Backend environment variables
+
+Create `backend/.env` with the following:
+
+```env
+# PostgreSQL connection string from Supabase or local Postgres
+DATABASE_URL="postgresql://user:password@host:port/database"
+
+# JWT settings
+JWT_SECRET="your-long-random-secret-here-at-least-32-chars"
+JWT_EXPIRES_IN="7d"
+
+# Server port (optional, defaults to 3000)
+PORT=3000
+```
+
+**How to get a Supabase DATABASE_URL:**
+
+1. Sign up for free at [supabase.com](https://supabase.com)
+2. Create a new project
+3. Go to Project Settings → Database
+4. Copy the connection string under "Connection string" (URI format)
+5. Paste it as `DATABASE_URL`
+
+### Frontend environment variables
+
+Create `frontend/.env.local` with:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
+When running locally, this points to your local backend. In production it
+points to the Railway URL.
+
+## Running the project locally
+
+Once you've cloned the repo and created both `.env` files, follow these steps in order.
+
+### Step 1: Install backend dependencies
+
+```bash
+cd backend
+npm install
+```
+
+### Step 2: Generate the Prisma client and run migrations
+
+```bash
+npx prisma generate
+npx prisma migrate deploy
+```
+
+This creates all 11 database tables in your Postgres instance.
+
+### Step 3: Start the backend server
+
+```bash
+npm run start:dev
+```
+
+The backend will start on `http://localhost:3000`. You should see NestJS
+console output listing all the mapped routes.
+
+### Step 4: Install frontend dependencies
+
+Open a new terminal (keep the backend running).
+
+```bash
+cd frontend
+npm install
+```
+
+### Step 5: Start the frontend dev server
+
+```bash
+npm run dev
+```
+
+The frontend runs on `http://localhost:3001` using Turbopack.
+
+### Step 6: Open the application
+
+Visit `http://localhost:3001` in your browser. You should see the Kora Health
+landing page.
+
+To test the full flow:
+
+1. Click **Get started** and register as a therapist
+2. Log out and register a second account as a patient
+3. Log back in as the therapist and create a treatment plan for the patient
+4. Log back in as the patient and complete a workout with pain tracking
+5. Log back in as the therapist to see the pain progression on the patient's detail page
+
+## Deployment
+
+### Deploying the backend to Railway
+
+1. Push your code to a GitHub repository
+2. Sign up at [railway.app](https://railway.app) and create a new project
+3. Connect your GitHub repository
+4. Set the following environment variables in Railway:
+   - `DATABASE_URL` (your Supabase connection string)
+   - `JWT_SECRET`
+   - `JWT_EXPIRES_IN=7d`
+   - `PORT=8080`
+5. Railway auto-detects Nixpacks and builds using `nixpacks.toml` and `railway.toml`
+6. After deployment, your API is available at `https://your-service.up.railway.app`
+
+### Deploying the frontend to Vercel
+
+1. Sign up at [vercel.com](https://vercel.com)
+2. Import your GitHub repository
+3. Set the root directory to `frontend`
+4. Add the environment variable:
+   - `NEXT_PUBLIC_API_URL=https://your-service.up.railway.app`
+5. Deploy. Vercel handles the rest.
+
+## Deferred features
+
+The following features were part of the original SRS but were deferred to
+focus the alpha submission on the core clinical loop. They are tracked as
+next-version work:
+
+- Video consultations through Jitsi
+- MTN Mobile Money payment integration
+- WhatsApp reminder notifications
+- Client-side AI form-checking via MediaPipe
+- Profile picture upload
+- Dark mode toggle
+- Account deletion self-service
+- Multi-language support (English, Kinyarwanda, French)
+
+## License
+
+© 2026 Kora Health. All rights reserved.
+
+Built by Atigbi Emmanuel Ayomiku, Year 2 Software Engineering student at
+African Leadership University, Kigali, Rwanda.
